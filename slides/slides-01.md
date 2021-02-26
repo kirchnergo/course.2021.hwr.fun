@@ -312,21 +312,22 @@ F# verfügt über zahlreiche Features, einschließlich:
 
 ## Record Types
 
--   Gleichheit bei gleichen Werten 
-    -   bei Klassen: Gleichheit bei gleicher Referenz!
--   Können rekursiv sein
+- Gleichheit bei gleichen Werten 
+  - bei Klassen: Gleichheit bei gleicher Referenz!
+- Können rekursiv sein
 
-    type Card = { Suit: Suit; Rank: Rank }
-    
-    /// This computes a list representing all the cards in the deck.
-    let fullDeck = 
-        [ for suit in [Hearts; Diamonds; Clubs; Spades] do
-              for rank in Rank.GetAllRanks() do 
-                  yield {Suit=suit; Rank=rank} ]
-    fullDeck 
-    |> Seq.length
 
-    52
+        type Card = { Suit: Suit; Rank: Rank }
+        
+        /// This computes a list representing all the cards in the deck.
+        let fullDeck = 
+            [ for suit in [Hearts; Diamonds; Clubs; Spades] do
+                for rank in Rank.GetAllRanks() do 
+                    yield {Suit=suit; Rank=rank} ]
+        fullDeck 
+        |> Seq.length
+
+        52
 
 
 # Collections 
