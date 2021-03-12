@@ -23,6 +23,8 @@
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\scriptsize}
 
+#+PROPERTY: header-args:fsharp :tangle ../src/1/00_slides.fsx
+
 * Organisatorisches [9/9]
 
 ** DONE Organisatorisches

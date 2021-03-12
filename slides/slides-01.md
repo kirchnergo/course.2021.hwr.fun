@@ -142,12 +142,12 @@ F# verfügt über zahlreiche Features, einschließlich:
 </colgroup>
 <tbody>
 <tr>
-<td class="org-left">1.53.2</td>
+<td class="org-left">1.54.1</td>
 </tr>
 
 
 <tr>
-<td class="org-left">622cb03f7e070a9670c94bae1a45d78d7181fbd4</td>
+<td class="org-left">f30a9b73e8ffc278e71575118b6bf568f04587c8</td>
 </tr>
 
 
@@ -312,22 +312,24 @@ F# verfügt über zahlreiche Features, einschließlich:
 
 ## Record Types
 
-- Gleichheit bei gleichen Werten 
-  - bei Klassen: Gleichheit bei gleicher Referenz!
-- Können rekursiv sein
+-   Gleichheit bei gleichen Werten 
+    -   bei Klassen: Gleichheit bei gleicher Referenz!
+-   Können rekursiv sein
 
+    type Card = { Suit: Suit; Rank: Rank }
+    
+    /// This computes a list representing all the cards in the deck.
+    let fullDeck = 
+        [ for suit in [Hearts; Diamonds; Clubs; Spades] do
+              for rank in Rank.GetAllRanks() do 
+                  yield {Suit=suit; Rank=rank} ]
+    fullDeck 
+    |> Seq.length
 
-        type Card = { Suit: Suit; Rank: Rank }
-        
-        /// This computes a list representing all the cards in the deck.
-        let fullDeck = 
-            [ for suit in [Hearts; Diamonds; Clubs; Spades] do
-                for rank in Rank.GetAllRanks() do 
-                    yield {Suit=suit; Rank=rank} ]
-        fullDeck 
-        |> Seq.length
-
-        52
+    type Card = { Suit: Suit; Rank: Rank }
+      --------------------^^^^
+    
+    /Users/kirchnerg/Desktop/courses/course.2021.hwr.fun/slides/stdin(806,21): error FS0039: The type 'Suit' is not defined.
 
 
 # Collections 
@@ -372,7 +374,7 @@ F# verfügt über zahlreiche Features, einschließlich:
 
     val randomNumbers : seq<int>
     val firstTenRandomNumbers : int list =
-      [6626; 16110; 18247; 33708; 48459; 50167; 73221; 73743; 82693; 95930]
+      [4925; 12906; 16575; 21930; 52334; 58053; 63212; 69670; 78681; 92515]
 
 
 ## Collection Functions
@@ -410,15 +412,15 @@ F# verfügt über zahlreiche Features, einschließlich:
     let ls = List.map (fun (_,p) -> String.length p) ps
     printfn "%A" ls
 
-    [72932; 47933]
+    [73351; 48011]
     val sites : string list = ["http://www.bing.com"; "http://www.google.com"]
     val fetch : url:string -> string * string
     val ps : (string * string) list =
       [("http://www.bing.com",
-        "<!doctype html><html lang="de" dir="ltr"><head><meta name="th"+[72871 chars]);
+        "<!doctype html><html lang="de" dir="ltr"><head><meta name="th"+[73290 chars]);
        ("http://www.google.com",
-        "<!doctype html><html itemscope="" itemtype="http://schema.org"+[47872 chars])]
-    val ls : int list = [72932; 47933]
+        "<!doctype html><html itemscope="" itemtype="http://schema.org"+[47950 chars])]
+    val ls : int list = [73351; 48011]
 
 
 ## Folding
@@ -608,7 +610,7 @@ F# verfügt über zahlreiche Features, einschließlich:
     val r1 : int = 64
     val r2 : int = 81
     val listOfFunctions : (int -> int) list =
-      [<fun:listOfFunctions@831-6>; <fun:listOfFunctions@831-7>]
+      [<fun:listOfFunctions@944>; <fun:listOfFunctions@944-1>]
 
 
 ## Rekursion
