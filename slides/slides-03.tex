@@ -1,0 +1,399 @@
+% Created 2021-03-26 Fri 08:53
+% Intended LaTeX compiler: pdflatex
+\documentclass[t]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\mode<beamer>{\usetheme{Amsterdam}}
+\mode<beamer>{\usecolortheme{rose}}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage[babelshorthands=true]{german}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage[misc]{ifsym}
+\definecolor{darkblue}{rgb}{0,0,.5}
+\definecolor{darkgreen}{rgb}{0,.5,0}
+\definecolor{islamicgreen}{rgb}{0.0, 0.56, 0.0}
+\definecolor{darkred}{rgb}{0.5,0,0}
+\definecolor{mintedbg}{rgb}{0.95,0.95,0.95}
+\definecolor{arsenic}{rgb}{0.23, 0.27, 0.29}
+\definecolor{prussianblue}{rgb}{0.0, 0.19, 0.33}
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}
+\hypersetup{colorlinks=true, breaklinks=true, anchorcolor=blue,linkcolor=white, citecolor=islamicgreen, filecolor=darkred,  urlcolor=darkblue}
+\usepackage{booktabs}
+\usepackage{pgf}
+\usepackage{minted}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\scriptsize}
+\usetheme{default}
+\author{Göran Kirchner\thanks{e\_kirchnerg@doz.hwr-berlin.de}}
+\date{2021-03-26}
+\title{Funktionale Programmierung in F\# (3)}
+\subtitle{Grundlagen \& Funktionales Design}
+\hypersetup{
+ pdfauthor={Göran Kirchner},
+ pdftitle={Funktionale Programmierung in F\# (3)},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 27.1 (Org mode 9.4.4)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+
+\section{Ziel }
+\label{sec:org83e3ac2}
+
+\begin{frame}[label={sec:org5463128}]{Programm}
+\begin{itemize}
+\item Hausaufgaben
+\item Prinzipien des funktionalen Designs
+\item Refactoring (Übung)
+\end{itemize}
+\end{frame}
+
+\section{Hausaufgaben }
+\label{sec:org03c38bb}
+\begin{frame}[label={sec:orgf94adee},fragile]{Queen Attack}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+open System
+let create (row, col) = row >= 0 && row < 8 && col >= 0 && col < 8
+let canAttack (queen1: int * int) (queen2: int * int) = 
+    let (r1, c1) = queen1
+    let (r2, c2) = queen2
+    Math.Abs(r1 - r2) = Math.Abs(c1 - c2) || r1 = r2 || c1 = c2
+let whiteQueen1, blackQueen1 = (2, 2), (1, 1)
+let test1 = canAttack blackQueen1 whiteQueen1
+let whiteQueen2, blackQueen2 = (2, 4), (6, 6)
+let test2 = canAttack blackQueen2 whiteQueen2
+[test1; test2]
+\end{minted}
+
+\begin{verbatim}
+val create : row:int * col:int -> bool
+val canAttack : int * int -> int * int -> bool
+val whiteQueen1 : int * int = (2, 2)
+val blackQueen1 : int * int = (1, 1)
+val test1 : bool = true
+val whiteQueen2 : int * int = (2, 4)
+val blackQueen2 : int * int = (6, 6)
+val test2 : bool = false
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org7a72229},fragile]{Raindrops}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let rules =
+    [ 3, "Pling"
+      5, "Plang"
+      7, "Plong" ]
+let convert (number: int): string =
+    let divBy n d = n % d = 0
+    rules
+    |> List.filter (fst >> divBy number)
+    |> List.map snd
+    |> String.concat ""
+    |> function
+       | "" -> string number
+       | s -> s
+let test = convert 105
+test
+\end{minted}
+
+\begin{verbatim}
+val rules : (int * string) list = [(3, "Pling"); (5, "Plang"); (7, "Plong")]
+val convert : number:int -> string
+val test : string = "PlingPlangPlong"
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:orgd9a2859},fragile]{Gigasecond}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let add (beginDate : System.DateTime) = beginDate.AddSeconds 1e9
+let test = add (DateTime(2015, 1, 24, 22, 0, 0)) = (DateTime(2046, 10, 2, 23, 46, 40))
+test
+\end{minted}
+
+\begin{verbatim}
+val add : beginDate:DateTime -> DateTime
+val test : bool = true
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org4693a46},fragile]{Bank Account (1)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+type OpenAccount =
+    { mutable Balance: decimal }
+type Account =
+    | Closed
+    | Open of OpenAccount
+let mkBankAccount() = Closed
+let openAccount account =
+    match account with
+    | Closed -> Open { Balance = 0.0m }
+    | Open _ -> failwith "Account is already open"
+\end{minted}
+
+\begin{verbatim}
+type OpenAccount =
+  { mutable Balance: decimal }
+type Account =
+  | Closed
+  | Open of OpenAccount
+val mkBankAccount : unit -> Account
+val openAccount : account:Account -> Account
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org40062e0},fragile]{Bank Account (2)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let closeAccount account =
+    match account with
+    | Open _ -> Closed
+    | Closed -> failwith "Account is already closed"
+let getBalance account =
+    match account with
+    | Open openAccount -> Some openAccount.Balance
+    | Closed -> None
+let updateBalance change account =
+    match account with
+    | Open openAccount ->
+        lock (openAccount) (fun _ ->
+            openAccount.Balance <- openAccount.Balance + change
+            Open openAccount)
+    | Closed -> failwith "Account is closed"
+\end{minted}
+
+\begin{verbatim}
+val closeAccount : account:Account -> Account
+val getBalance : account:Account -> decimal option
+val updateBalance : change:decimal -> account:Account -> Account
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:orgfba2a2d},fragile]{Bank Account (3)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let account = mkBankAccount() |> openAccount
+let updateAccountAsync =        
+    async { account |> updateBalance 1.0m |> ignore }
+let ``updated from multiple threads`` =
+    updateAccountAsync
+    |> List.replicate 1000
+    |> Async.Parallel 
+    |> Async.RunSynchronously
+    |> ignore
+let test1 = getBalance account = (Some 1000.0m)
+test1
+\end{minted}
+
+\begin{verbatim}
+val account : Account = Open { Balance = 1000.0M }
+val updateAccountAsync : Async<unit>
+val ( updated from multiple threads ) : unit = ()
+val test1 : bool = true
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org2346c6b}]{Pause}
+\begin{block}{}
+You’re bound to be unhappy if you optimize everything.
+
+\null\hfill -- Donald Knuth
+\end{block}
+\end{frame}
+
+\section{Prinzipien des Funktionalen Designs }
+\label{sec:org7afb2c6}
+\begin{frame}[label={sec:orgcc0319b}]{Funktionales Design}
+\(\leadsto\) \href{./3.1 Functional Design Patterns.pdf}{Functional Design Patterns}
+\end{frame}
+
+\begin{frame}[label={sec:org089c18f}]{Prinzipien (1)}
+\begin{itemize}
+\item Funktionen sind Daten!
+\item überall Verkettung (Composition)
+\item überall Funktionen
+\item Typen sind keine Klassen
+\item Typen kann man ebenfalls verknüpfen (algebraische Datentypen)
+\item Typsignaturen lügen nicht!
+\item statische Typen zur Modellierung der Domäne (später mehr;)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org48a8169}]{Prinzipien (2)}
+\begin{itemize}
+\item Parametrisiere alles!
+\item Typsignaturen sind "Interfaces"
+\item Partielle Anwendung ist "Dependency Injection"
+\item Monaden entsprechen dem "Chaining of Continuations"
+\begin{itemize}
+\item bind für Optionen
+\item bind für Fehler
+\item bind für Tasks
+\end{itemize}
+\item "map" - Funktionen
+\begin{itemize}
+\item Nutze "map" - Funktion von generische Typen!
+\item wenn man einen generischen Typ definiert, dann auch eine "map" - Funktion
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org6c5a8a0}]{Pause}
+\begin{block}{}
+If we’d asked the customers what they wanted, they would have said “faster horses”.
+
+\null\hfill -- Henry Ford
+\end{block}
+\end{frame}
+
+\section{Refactoring }
+\label{sec:org52cdd10}
+\begin{frame}[label={sec:org42bb9c4},fragile]{Tree Building (Übung)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{shell}
+exercism download --exercise=tree-building --track=fsharp
+\end{minted}
+\end{frame}
+
+\begin{frame}[label={sec:org2cdbc3a},fragile]{Tree Building (Imperativ)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let buildTree records =
+    let records' = List.sortBy (fun x -> x.RecordId) records
+    if List.isEmpty records' then failwith "Empty input"
+    else
+        let root = records'.[0]
+        if (root.ParentId = 0 |> not) then
+            failwith "Root node is invalid"
+        else
+            if (root.RecordId = 0 |> not) then failwith "Root node is invalid"
+            else
+                let mutable prev = -1
+                let mutable leafs = []
+                for r in records' do
+                    if (r.RecordId <> 0 && (r.ParentId > r.RecordId || r.ParentId = r.RecordId)) then
+                        failwith "Nodes with invalid parents"
+                    else
+                        if r.RecordId <> prev + 1 then
+                            failwith "Non-continuous list"
+                        else
+                            prev <- r.RecordId
+                            if (r.RecordId = 0) then
+                                leafs <- leafs @ [(-1, r.RecordId)]
+                            else
+                                leafs <- leafs @ [(r.ParentId, r.RecordId)]
+\end{minted}
+\end{frame}
+
+\begin{frame}[label={sec:orgc958f70},fragile]{Tree Building (Funktional)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let buildTree records = 
+    records
+    |> List.sortBy (fun r -> r.RecordId)
+    |> validate
+    |> List.tail
+    |> List.groupBy (fun r -> r.ParentId)
+    |> Map.ofList
+    |> makeTree 0
+
+let rec makeTree id map =
+    match map |> Map.tryFind id with
+    | None -> Leaf id
+    | Some list -> Branch (id, 
+        list |> List.map (fun r -> makeTree r.RecordId map))
+\end{minted}
+\end{frame}
+
+\begin{frame}[label={sec:org365a5cd},fragile]{Tree Building (Error Handling)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let validate records =
+    match records with
+    | [] -> failwith "Input must be non-empty"
+    | x :: _ when x.RecordId <> 0 -> 
+        failwith "Root must have id 0"
+    | x :: _ when x.ParentId <> 0 -> 
+        failwith "Root node must have parent id 0"
+    | _ :: xs when xs |> List.exists (fun r -> r.RecordId < r.ParentId) -> 
+        failwith "ParentId should be less than RecordId"
+    | _ :: xs when xs |> List.exists (fun r -> r.RecordId = r.ParentId) -> 
+        failwith "ParentId cannot be the RecordId except for the root node."
+    | rs when (rs |> List.map (fun r -> r.RecordId) |> List.max) > (List.length rs - 1) -> 
+        failwith "Ids must be continuous"
+    | _ -> records
+\end{minted}
+\end{frame}
+
+\begin{frame}[label={sec:org7a4fa1a},fragile]{Tree Building (Benchmarking)}
+ \begin{itemize}
+\item \href{https://github.com/dotnet/BenchmarkDotNet}{BenchmarkDotNet}
+\end{itemize}
+
+\begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{shell}
+dotnet run -c release
+\end{minted}
+
+\begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{shell}
+sed -n 508,520p $benchmarks
+\end{minted}
+
+\tiny
+// * Summary *
+
+BenchmarkDotNet=v0.12.1, OS=macOS 11.2.2 (20D80) [Darwin 20.3.0]
+Intel Core i7-7920HQ CPU 3.10GHz (Kaby Lake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=5.0.101
+  [Host]     : .NET Core 5.0.1 (CoreCLR 5.0.120.57516, CoreFX 5.0.120.57516), X64 RyuJIT DEBUG
+  DefaultJob : .NET Core 5.0.1 (CoreCLR 5.0.120.57516, CoreFX 5.0.120.57516), X64 RyuJIT
+
+
+\begin{center}
+\begin{tabular}{lllllrrrlll}
+Method & Mean & Error & StdDev & Median & Ratio & RatioSD & Gen 0 & Gen 1 & Gen 2 & Allocated\\
+\hline
+Baseline & 10.113 μs & 0.1998 μs & 0.3849 μs & 10.074 μs & 1.00 & 0.00 & 3.6163 & - & - & 14.8 KB\\
+Mine & 6.539 μs & 0.2335 μs & 0.6812 μs & 6.354 μs & 0.63 & 0.06 & 2.0828 & - & - & 8.52 KB\\
+\end{tabular}
+\end{center}
+\end{frame}
+
+\section{Ende }
+\label{sec:org7f195f8}
+\begin{frame}[label={sec:org4148e83}]{Zusammenfassung}
+\begin{itemize}
+\item funktionales Design
+\item funktionales Refactoring
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org8ff54b1}]{Links}
+\begin{itemize}
+\item \href{https://fsharp.org/}{fsharp.org}
+\item \href{https://docs.microsoft.com/de-de/dotnet/fsharp/}{docs.microsoft.com/../dotnet/fsharp}
+\item \href{https://sergeytihon.com/}{F\# weekly}
+\item \href{https://fsharpforfunandprofit.com/}{fsharpforfunandprofit.com}
+\item \href{https://github.com/fsprojects/awesome-fsharp}{github.com/../awesome-fsharp}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org3cc3253}]{Hausaufgabe}
+\begin{itemize}
+\item exercism.io (E-Mail bis 16.4)
+\begin{itemize}
+\item[{$\square$}] Accumulate
+\item[{$\square$}] Space Age
+\item[{$\square$}] Poker (Programmieraufgabe)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\end{document}

@@ -1,0 +1,373 @@
+#+TITLE: Funktionale Programmierung in F# (3)
+#+BEAMER_HEADER: \subtitle{Grundlagen \& Funktionales Design}
+
+#+AUTHOR: Göran Kirchner
+#+EMAIL: e_kirchnerg@doz.hwr-berlin.de
+#+DATE: 2021-03-26
+
+# #+BEAMER_HEADER: \institute[INST]{\href{http://www.rki.de/EN}{Robert Koch Institute}}
+# #+BEAMER_HEADER: \logo{\pgfputat{\pgfxy(-0.8,7.5)}{\pgfbox[center,base]{\includegraphics[width=1.6cm]{rki-logo}}}}
+
+#+OPTIONS: H:2 toc:nil ltoc:t \n:nil @:t ::t |:t ^:t *:t TeX:t LaTeX:t email:t pri:nil todo:nil stat:nil
+
+#+LATEX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [presentation]
+#+LaTeX_CLASS_OPTIONS: [t]
+#+latex_header: \mode<beamer>{\usetheme{Amsterdam}}
+#+latex_header: \mode<beamer>{\usecolortheme{rose}}
+# #+BEAMER_THEME: Amsterdam
+
+# #+COLUMNS: %45ITEM %10BEAMER_ENV(Env) %10BEAMER_ACT(Act) %4BEAMER_COL(Col) %8BEAMER_OPT(Opt)
+
+#+Include: "../inc/preamble-talk.org"
+
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\scriptsize}
+
+#+PROPERTY: header-args:fsharp :tangle ../src/3/00_slides.fsx
+
+* Ziel [1/1]
+
+** DONE Programm
+   CLOSED: [2021-03-25 Thu 17:00]
+
+- Hausaufgaben
+- Prinzipien des funktionalen Designs
+- Refactoring (Übung)
+
+* Hausaufgaben [7/7]
+** DONE Queen Attack
+   CLOSED: [2021-03-25 Thu 17:00]
+
+#+begin_src fsharp :results output :exports both
+open System
+let create (row, col) = row >= 0 && row < 8 && col >= 0 && col < 8
+let canAttack (queen1: int * int) (queen2: int * int) = 
+    let (r1, c1) = queen1
+    let (r2, c2) = queen2
+    Math.Abs(r1 - r2) = Math.Abs(c1 - c2) || r1 = r2 || c1 = c2
+let whiteQueen1, blackQueen1 = (2, 2), (1, 1)
+let test1 = canAttack blackQueen1 whiteQueen1
+let whiteQueen2, blackQueen2 = (2, 4), (6, 6)
+let test2 = canAttack blackQueen2 whiteQueen2
+[test1; test2]
+#+end_src
+
+#+RESULTS:
+: val create : row:int * col:int -> bool
+: val canAttack : int * int -> int * int -> bool
+: val whiteQueen1 : int * int = (2, 2)
+: val blackQueen1 : int * int = (1, 1)
+: val test1 : bool = true
+: val whiteQueen2 : int * int = (2, 4)
+: val blackQueen2 : int * int = (6, 6)
+: val test2 : bool = false
+
+** DONE Raindrops
+   CLOSED: [2021-03-25 Thu 17:00]
+
+#+begin_src fsharp :results output :exports both
+let rules =
+    [ 3, "Pling"
+      5, "Plang"
+      7, "Plong" ]
+let convert (number: int): string =
+    let divBy n d = n % d = 0
+    rules
+    |> List.filter (fst >> divBy number)
+    |> List.map snd
+    |> String.concat ""
+    |> function
+       | "" -> string number
+       | s -> s
+let test = convert 105
+test
+#+end_src
+
+#+RESULTS:
+: val rules : (int * string) list = [(3, "Pling"); (5, "Plang"); (7, "Plong")]
+: val convert : number:int -> string
+: val test : string = "PlingPlangPlong"
+
+** DONE Gigasecond
+   CLOSED: [2021-03-25 Thu 17:00]
+
+#+begin_src fsharp :results output :exports both
+let add (beginDate : System.DateTime) = beginDate.AddSeconds 1e9
+let test = add (DateTime(2015, 1, 24, 22, 0, 0)) = (DateTime(2046, 10, 2, 23, 46, 40))
+test
+#+end_src
+
+#+RESULTS:
+: val add : beginDate:DateTime -> DateTime
+: val test : bool = true
+
+** DONE Bank Account (1)
+   CLOSED: [2021-03-25 Thu 17:00]
+
+#+begin_src fsharp :results value :exports both
+type OpenAccount =
+    { mutable Balance: decimal }
+type Account =
+    | Closed
+    | Open of OpenAccount
+let mkBankAccount() = Closed
+let openAccount account =
+    match account with
+    | Closed -> Open { Balance = 0.0m }
+    | Open _ -> failwith "Account is already open"
+#+end_src
+
+#+RESULTS:
+: type OpenAccount =
+:   { mutable Balance: decimal }
+: type Account =
+:   | Closed
+:   | Open of OpenAccount
+: val mkBankAccount : unit -> Account
+: val openAccount : account:Account -> Account
+
+** DONE Bank Account (2)
+   CLOSED: [2021-03-25 Thu 17:00]
+
+#+begin_src fsharp :results value :exports both
+let closeAccount account =
+    match account with
+    | Open _ -> Closed
+    | Closed -> failwith "Account is already closed"
+let getBalance account =
+    match account with
+    | Open openAccount -> Some openAccount.Balance
+    | Closed -> None
+let updateBalance change account =
+    match account with
+    | Open openAccount ->
+        lock (openAccount) (fun _ ->
+            openAccount.Balance <- openAccount.Balance + change
+            Open openAccount)
+    | Closed -> failwith "Account is closed"
+#+end_src
+
+#+RESULTS:
+: val closeAccount : account:Account -> Account
+: val getBalance : account:Account -> decimal option
+: val updateBalance : change:decimal -> account:Account -> Account
+
+** DONE Bank Account (3)
+   CLOSED: [2020-04-22 Wed 23:45]
+
+#+begin_src fsharp :results output :exports both
+let account = mkBankAccount() |> openAccount
+let updateAccountAsync =        
+    async { account |> updateBalance 1.0m |> ignore }
+let ``updated from multiple threads`` =
+    updateAccountAsync
+    |> List.replicate 1000
+    |> Async.Parallel 
+    |> Async.RunSynchronously
+    |> ignore
+let test1 = getBalance account = (Some 1000.0m)
+test1
+#+end_src
+
+#+RESULTS:
+: val account : Account = Open { Balance = 1000.0M }
+: val updateAccountAsync : Async<unit>
+: val ( updated from multiple threads ) : unit = ()
+: val test1 : bool = true
+
+** DONE Pause
+   CLOSED: [2021-03-25 Thu 17:01]
+
+*** 
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+
+You’re bound to be unhappy if you optimize everything.
+
+\null\hfill -- Donald Knuth
+
+* Prinzipien des Funktionalen Designs [4/4]
+** DONE Funktionales Design
+   CLOSED: [2021-03-25 Thu 17:01]
+
+$\leadsto$ [[./3.1 Functional Design Patterns.pdf][Functional Design Patterns]]
+
+** DONE Prinzipien (1)
+   CLOSED: [2021-03-25 Thu 17:01]
+
+- Funktionen sind Daten!
+- überall Verkettung (Composition)
+- überall Funktionen
+- Typen sind keine Klassen
+- Typen kann man ebenfalls verknüpfen (algebraische Datentypen)
+- Typsignaturen lügen nicht!
+- statische Typen zur Modellierung der Domäne (später mehr;)
+
+** DONE Prinzipien (2)
+   CLOSED: [2021-03-25 Thu 17:01]
+
+- Parametrisiere alles!
+- Typsignaturen sind "Interfaces"
+- Partielle Anwendung ist "Dependency Injection"
+- Monaden entsprechen dem "Chaining of Continuations"
+  - bind für Optionen
+  - bind für Fehler
+  - bind für Tasks
+- "map" - Funktionen
+  - Nutze "map" - Funktion von generische Typen!
+  - wenn man einen generischen Typ definiert, dann auch eine "map" - Funktion 
+  
+** DONE Pause
+   CLOSED: [2021-03-25 Thu 17:01]
+*** 
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+
+If we’d asked the customers what they wanted, they would have said “faster horses”.
+
+\null\hfill -- Henry Ford
+
+* Refactoring [4/4]
+** DONE Tree Building (Übung)
+   CLOSED: [2021-03-25 Thu 20:50]
+
+#+begin_src shell :exports code :eval no
+exercism download --exercise=tree-building --track=fsharp
+#+end_src
+
+** DONE Tree Building (Imperativ)
+   CLOSED: [2021-03-25 Thu 17:02]
+
+#+begin_src fsharp :exports code :eval no
+let buildTree records =
+    let records' = List.sortBy (fun x -> x.RecordId) records
+    if List.isEmpty records' then failwith "Empty input"
+    else
+        let root = records'.[0]
+        if (root.ParentId = 0 |> not) then
+            failwith "Root node is invalid"
+        else
+            if (root.RecordId = 0 |> not) then failwith "Root node is invalid"
+            else
+                let mutable prev = -1
+                let mutable leafs = []
+                for r in records' do
+                    if (r.RecordId <> 0 && (r.ParentId > r.RecordId || r.ParentId = r.RecordId)) then
+                        failwith "Nodes with invalid parents"
+                    else
+                        if r.RecordId <> prev + 1 then
+                            failwith "Non-continuous list"
+                        else
+                            prev <- r.RecordId
+                            if (r.RecordId = 0) then
+                                leafs <- leafs @ [(-1, r.RecordId)]
+                            else
+                                leafs <- leafs @ [(r.ParentId, r.RecordId)]
+#+end_src
+
+** DONE Tree Building (Funktional)
+   CLOSED: [2021-03-25 Thu 17:02]
+
+#+begin_src fsharp :exports code :eval no
+let buildTree records = 
+    records
+    |> List.sortBy (fun r -> r.RecordId)
+    |> validate
+    |> List.tail
+    |> List.groupBy (fun r -> r.ParentId)
+    |> Map.ofList
+    |> makeTree 0
+
+let rec makeTree id map =
+    match map |> Map.tryFind id with
+    | None -> Leaf id
+    | Some list -> Branch (id, 
+        list |> List.map (fun r -> makeTree r.RecordId map))
+#+end_src
+
+** DONE Tree Building (Error Handling)
+   CLOSED: [2021-03-25 Thu 17:02]
+
+#+begin_src fsharp :exports code :eval no
+let validate records =
+    match records with
+    | [] -> failwith "Input must be non-empty"
+    | x :: _ when x.RecordId <> 0 -> 
+        failwith "Root must have id 0"
+    | x :: _ when x.ParentId <> 0 -> 
+        failwith "Root node must have parent id 0"
+    | _ :: xs when xs |> List.exists (fun r -> r.RecordId < r.ParentId) -> 
+        failwith "ParentId should be less than RecordId"
+    | _ :: xs when xs |> List.exists (fun r -> r.RecordId = r.ParentId) -> 
+        failwith "ParentId cannot be the RecordId except for the root node."
+    | rs when (rs |> List.map (fun r -> r.RecordId) |> List.max) > (List.length rs - 1) -> 
+        failwith "Ids must be continuous"
+    | _ -> records
+#+end_src
+
+** DONE Tree Building (Benchmarking)
+    CLOSED: [2021-03-26 Fri 08:28]
+
+- [[https://github.com/dotnet/BenchmarkDotNet][BenchmarkDotNet]]
+  
+#+begin_src shell :eval no
+dotnet run -c release
+#+end_src
+
+#+Name: benchmarks
+#+Header: :var benchmarks="../src/3/03-tree-building/BenchmarkDotNet.Artifacts/TreeBuildingBenchmark.Benchmarks-20210325-225337.log"
+#+begin_src shell :results output raw replace :exports both
+sed -n 508,520p $benchmarks
+#+end_src
+
+#+Latex:\tiny
+#+RESULTS: benchmarks
+
+* Ende [3/3]
+** DONE Zusammenfassung
+   CLOSED: [2021-03-25 Thu 17:02]
+
+- funktionales Design
+- funktionales Refactoring
+
+** DONE Links
+   CLOSED: [2020-03-07 Sat 19:52]
+
+- [[https://fsharp.org/][fsharp.org]]
+- [[https://docs.microsoft.com/de-de/dotnet/fsharp/][docs.microsoft.com/../dotnet/fsharp]]
+- [[https://sergeytihon.com/][F# weekly]]
+- [[https://fsharpforfunandprofit.com/][fsharpforfunandprofit.com]]
+- [[https://github.com/fsprojects/awesome-fsharp][github.com/../awesome-fsharp]]
+
+** DONE Hausaufgabe
+   CLOSED: [2020-03-05 Thu 16:17]
+
+- exercism.io (E-Mail bis 16.4)
+  - [ ] Accumulate
+  - [ ] Space Age
+  - [ ] Poker (Programmieraufgabe)
+
+* Sample                                                           :noexport:
+ 
+** Frame 1
+
+*** Thanks to Eric Fraga :B_block:BMCOL:
+:PROPERTIES:
+:BEAMER_COL: 0.48
+:BEAMER_ENV: block
+:END:
+
+for the first viable Beamer setup in Org
+
+*** Thanks to everyone else :B_block:BMCOL:
+:PROPERTIES:
+:BEAMER_COL: 0.48
+:BEAMER_ACT: <2->
+:BEAMER_ENV: block
+:END:
+
+for contributing to the discussion
+

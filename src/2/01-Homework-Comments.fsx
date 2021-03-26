@@ -8,7 +8,7 @@ module Tools =
         let sz = Array.length chars in
         String(Array.init n (fun _ -> chars.[r.Next sz]))
 
-randomString 10
+randomString 20
 
 // Two-Fer
 module TwoFer = 
