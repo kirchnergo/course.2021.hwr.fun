@@ -1,0 +1,341 @@
+% Created 2021-04-09 Fri 12:11
+% Intended LaTeX compiler: pdflatex
+\documentclass[t]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\mode<beamer>{\usetheme{Amsterdam}}
+\mode<beamer>{\usecolortheme{rose}}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage[babelshorthands=true]{german}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage[misc]{ifsym}
+\definecolor{darkblue}{rgb}{0,0,.5}
+\definecolor{darkgreen}{rgb}{0,.5,0}
+\definecolor{islamicgreen}{rgb}{0.0, 0.56, 0.0}
+\definecolor{darkred}{rgb}{0.5,0,0}
+\definecolor{mintedbg}{rgb}{0.95,0.95,0.95}
+\definecolor{arsenic}{rgb}{0.23, 0.27, 0.29}
+\definecolor{prussianblue}{rgb}{0.0, 0.19, 0.33}
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}
+\hypersetup{colorlinks=true, breaklinks=true, anchorcolor=blue,linkcolor=white, citecolor=islamicgreen, filecolor=darkred,  urlcolor=darkblue}
+\usepackage{booktabs}
+\usepackage{pgf}
+\usepackage{minted}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\scriptsize}
+\usetheme{default}
+\author{Göran Kirchner\thanks{e\_kirchnerg@doz.hwr-berlin.de}}
+\date{2021-04-09}
+\title{Funktionale Programmierung in F\# (4)}
+\subtitle{Domain Driven Design \& Property Based Testing}
+\hypersetup{
+ pdfauthor={Göran Kirchner},
+ pdftitle={Funktionale Programmierung in F\# (4)},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 27.2 (Org mode 9.4.5)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+
+\section{Ziel }
+\label{sec:org5a2c873}
+\begin{frame}[label={sec:org81a6070}]{Programm}
+\begin{itemize}
+\item Domain Driven Design (DDD)
+\item Property Based Testing
+\end{itemize}
+\end{frame}
+
+\section{DDD (Domain Driven Design) }
+\label{sec:org8a0a42a}
+\begin{frame}[label={sec:orgc4cf564}]{DDD}
+\(\leadsto\) \href{./4.1 DDD\_With\_Fsharp.pdf}{Domain Driven Design}
+\end{frame}
+
+\begin{frame}[label={sec:org8bbf037}]{Prinzipien}
+\begin{itemize}
+\item Verwende die Sprache der Domäne (ubiquitous Language)
+\item Values und Entities
+\item der Code ist das Design (kein UML nötig)
+\item Design mit (algebraischen) Typen
+\begin{itemize}
+\item Option statt Null
+\item DU statt Vererbung
+\end{itemize}
+\item illegale Konstellationen sollten nicht repräsentierbar sein!
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:orgc4d4b0c}]{Pause}
+\begin{block}{}
+Are you quite sure that all those bells and whistles, all those wonderful facilities of your so called powerful programming languages, belong to the solution set rather than the problem set?
+
+\null\hfill -- Edsger Dijkstra
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:orgff3cde3}]{DDD Übung 1 (Contacts)}
+A Contact has
+
+\begin{itemize}
+\item a personal name
+\item an optional email address
+\item an optional postal address
+\item Rule: a contact must have an email or a postal address
+\end{itemize}
+
+A Personal Name consists of a first name, middle initial, last name
+
+\begin{itemize}
+\item Rule: the first name and last name are required
+\item Rule: the middle initial is optional
+\item Rule: the first name and last name must not be more than 50 chars
+\item Rule: the middle initial is exactly 1 char, if present
+\end{itemize}
+
+A postal address consists of a four address fields plus a country
+
+\begin{itemize}
+\item Rule: An Email Address can be verified or unverified
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org827f687}]{DDD Übung 2 (Payments)}
+The payment taking system should accept:
+
+\begin{itemize}
+\item Cash
+\item Credit cards
+\item Cheques
+\item Paypal
+\item Bitcoin
+\end{itemize}
+
+A payment consists of a:
+
+\begin{itemize}
+\item payment
+\item non-negative amount
+\end{itemize}
+
+After designing the types, create functions that will:
+
+\begin{itemize}
+\item print a payment method
+\item print a payment, including the amount
+\item create a new payment from an amount and method
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org00fbc34}]{Übung 3 (Refactoring)}
+Much C\# code has implicit states that you can recognize by fields called "IsSomething", or nullable date.
+
+This is a sign that states transitions are present but not being modelled properly.
+\end{frame}
+
+\begin{frame}[label={sec:orgb3a36ec}]{Übung 4 (Shopping Cart)}
+Create types that model an e-commerce shopping cart.
+
+\begin{itemize}
+\item Rule: "You can't remove an item from an empty cart"!
+\item Rule: "You can't change a paid cart"!
+\item Rule: "You can't pay for a cart twice"!
+\end{itemize}
+
+States are:
+\begin{itemize}
+\item Empty
+\item ActiveCartData
+\item PaidCartData
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org2f3347b}]{Pause}
+\begin{block}{}
+About the use of language: it is impossible to sharpen a pencil with a blunt axe. 
+It is equally vain to try to do it with ten blunt axes instead.
+
+\null\hfill -- Edsger Dijkstra
+\end{block}
+\end{frame}
+
+\section{Property Based Testing }
+\label{sec:org368d605}
+\begin{frame}[label={sec:orgf3046ef},fragile]{Example Based Tests :)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+module Test1 =
+    open Implementation1
+    let tests = testList "implementation 1" [
+        test "add 1 3 = 4" {
+            let actual = add 1 3
+            let expected = 4
+            Expect.equal expected actual "" }
+        test "add 2 2 = 4" {
+            let actual = add 2 2
+            let expected = 4
+            Expect.equal expected actual "" } ];;
+runTests expectoConfig Test1.tests
+\end{minted}
+
+\begin{verbatim}
+[00:51:05 INF] EXPECTO? Running tests... <Expecto>
+[00:51:05 INF] EXPECTO! 2 tests run in 00:00:00.0102279 for implementation 1 ? 
+2 passed, 0 ignored, 0 failed, 0 errored. Success! <Expecto>
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org4e831c2},fragile]{Evil Developer From Hell :(}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+module Implementation1 =
+    let add x y =
+        4
+\end{minted}
+
+\begin{verbatim}
+module Implementation1 = begin
+  val add : x:'a -> y:'b -> int
+end
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org8e95741}]{PBT}
+\(\leadsto\) \href{./4.2 An introduction to property based testing.pdf}{Property Based Testing}
+\end{frame}
+
+\begin{frame}[label={sec:orgc5a950b},fragile]{FsCheck}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+let add1 x y = x + y
+let add2 x y = x - y
+let commutativeProperty f x y =
+   let result1 = f x y
+   let result2 = f y x
+   result1 = result2;;
+FsCheck.Check.Quick (commutativeProperty add1)
+FsCheck.Check.Quick (commutativeProperty add2)
+\end{minted}
+
+\begin{verbatim}
+Ok, passed 100 tests.
+Falsifiable, after 1 test (1 shrink) (StdGen (74373745, 296875694)):
+Original:
+2
+1
+Shrunk:
+0
+1
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org23fb002},fragile]{FsCheck (Generate)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+type Temp = F of int | C of float;;
+let fGen =
+    FsCheck.Gen.choose(32,212)
+    |> FsCheck.Gen.map (fun i -> F i);;
+let cGen =
+    FsCheck.Gen.choose(0,100)
+    |> FsCheck.Gen.map (fun i -> C (float i));;
+let tempGen =
+    FsCheck.Gen.oneof [fGen; cGen]
+
+let test = tempGen |> FsCheck.Gen.sample 0 100
+test
+\end{minted}
+
+\begin{verbatim}
+val tempGen : Gen<Temp> = Gen <fun:Bind@88>
+val test : Temp list =
+  [C 81.0; F 196; C 70.0; C 38.0; C 25.0; F 166; C 31.0; C 7.0; F 105; F 73;
+   F 50; F 199; C 3.0; C 94.0; C 13.0; C 3.0; C 23.0; F 34; F 192; F 160;
+   F 137; C 33.0; C 53.0; F 50; C 63.0; F 32; F 192; F 85; F 53; F 211; C 66.0;
+   C 86.0; C 76.0; C 96.0; F 69; F 46; F 195; F 172; F 140; C 25.0; C 15.0;
+   C 35.0; C 25.0; F 188; F 156; F 133; F 101; C 65.0; C 55.0; C 75.0; C 65.0;
+   C 85.0; C 75.0; F 94; F 95; F 93; C 16.0; F 201; F 78; C 36.0; F 130; F 85;
+   F 82; C 16.0; F 41; F 167; F 36; F 124; C 34.0; F 184; C 46.0; F 119; F 158;
+   F 96; C 96.0; C 37.0; C 17.0; C 96.0; F 168; F 145; F 113; F 90; C 5.0;
+   C 25.0; C 15.0; C 35.0; C 25.0; F 106; F 74; F 51; F 200; C 65.0; C 55.0;
+   C 75.0; F 90; C 85.0; F 198; C 56.0; F 163; C 32.0]
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:orgb649121},fragile]{FsCheck (Shrink)}
+ \begin{minted}[bgcolor=mintedbg,frame=none,framesep=0pt,mathescape=true,fontsize=\scriptsize,breaklines=true,linenos=false,numbersep=5pt,gobble=0]{fsharp}
+open FsCheck
+let smallerThan81Property x = x < 81
+FsCheck.Check.Quick smallerThan81Property
+
+let test1 = FsCheck.Arb.shrink 100 |> Seq.toList
+let test2 = FsCheck.Arb.shrink 88 |> Seq.toList
+test2
+\end{minted}
+
+\begin{verbatim}
+Falsifiable, after 98 tests (1 shrink) (StdGen (76163595, 296875694)):
+Original:
+83
+Shrunk:
+81
+val smallerThan81Property : x:int -> bool
+val test1 : int list = [0; 50; 75; 88; 94; 97; 99]
+val test2 : int list = [0; 44; 66; 77; 83; 86; 87]
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[label={sec:org2904f94}]{Auswahl der Eigenschaften}
+\begin{itemize}
+\item Unterschiedlicher Weg, gleiches Ziel (Map(f)(Option(x))=Option(f x))
+\item Hin und Her (z.B. Reverse einer Liste)
+\item Invarianten (z.B. Länge einer Liste bei Sortierung)
+\item Idempotenz (noch einmal bringt nichts mehr)
+\item Divide et Impera! (teile und herrsche)
+\item Hard to prove, easy to verify (Primzahlzerlegung)
+\item Test-Orakel (z.B. einfach aber langsam)
+\end{itemize}
+\end{frame}
+
+\section{Ende }
+\label{sec:org9a37ce3}
+\begin{frame}[label={sec:orgc1aefa2}]{Zusammenfassung}
+\begin{itemize}
+\item funktionales Domain Modeling (DDD)
+\item eigenschaftsbasiertes Testen (Property Based Testing)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:orge56dbc8}]{Links}
+\begin{itemize}
+\item \href{https://fsharpforfunandprofit.com/ddd/}{Domain Driven Design}
+\item \href{https://fsharpforfunandprofit.com/books/}{Domain Modeling Made Functional}
+\item \href{https://github.com/fscheck/FsCheck}{FsCheck}
+\item \href{https://fsharpforfunandprofit.com/posts/property-based-testing/}{An introduction to property-based testing}
+\item \href{https://fsharpforfunandprofit.com/posts/property-based-testing-2/}{Choosing properties for property-based testing}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:orgebb3a1f}]{Hausaufgabe}
+\begin{itemize}
+\item exercism.io (E-Mail bis 16.4)
+\begin{itemize}
+\item[{$\square$}] Accumulate
+\item[{$\square$}] Space Age
+\item[{$\square$}] Poker (Programmieraufgabe)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\end{document}

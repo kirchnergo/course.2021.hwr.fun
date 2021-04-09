@@ -2,7 +2,7 @@
 // This file supports running the performance benchmarks. Do not modify it.
 
 module TreeBuildingBaseline
-#o "./TreeBuildingTypes.fs"
+
 open TreeBuildingTypes
 
 type Tree =

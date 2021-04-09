@@ -15,5 +15,11 @@
 ## Tag 3 - Grundlagen & Funktionales Design
 
 - Folien
-  - [slides-03.pdf](./slides/slides-02.pdf)
-  - [slides-03.md](./slides/slides-02.md)
+  - [slides-03.pdf](./slides/slides-03.pdf)
+  - [slides-03.md](./slides/slides-03.md)
+
+## Tag 4 - Domain Driven Design & Property Based Testing
+
+- Folien
+  - [slides-04.pdf](./slides/slides-04.pdf)
+  - [slides-04.md](./slides/slides-04.md)
