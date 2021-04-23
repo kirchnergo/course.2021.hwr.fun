@@ -38,7 +38,7 @@ module StringTypes =
 
     let createString1 (s:string) = 
         if (s.Length <= 1)
-            then Some (String50 s)
+            then Some (String1 s)
             else None
 
     let createString50 (s:string) = 

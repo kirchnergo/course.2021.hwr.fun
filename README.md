@@ -23,3 +23,9 @@
 - Folien
   - [slides-04.pdf](./slides/slides-04.pdf)
   - [slides-04.md](./slides/slides-04.md)
+
+## Tag 5 - Parser & Parser Combinators
+
+- Folien
+  - [slides-05.pdf](./slides/slides-05.pdf)
+  - [slides-05.md](./slides/slides-05.md)

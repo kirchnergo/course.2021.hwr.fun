@@ -116,14 +116,14 @@ This is a sign that states transitions are present but not being modelled proper
 
 Create types that model an e-commerce shopping cart.
 
-Rule: "You can't remove an item from an empty cart"
-Rule: "You can't change a paid cart"
-Rule: "You can't pay for a cart twice"
+- Rule: "You can't remove an item from an empty cart"!
+- Rule: "You can't change a paid cart"!
+- Rule: "You can't pay for a cart twice"!
 
 States are:
-- Empty
-- ActiveCartData
-- PaidCartData
+- Empty  
+- ActiveCartData  
+- PaidCartData  
   
 ** DONE Pause
    CLOSED: [2021-04-09 Fri 00:18]

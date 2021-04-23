@@ -58,7 +58,7 @@ Gen.choose (1,10)
 let evens =
     Gen.choose (1,10)
     |> Gen.filter (fun i -> i % 2 = 0)
-evens |> Gen.sample 0 10
+evens |> Gen.sample 0 100
 
 // Note: Throwing away 50% of the items is bad.
 // Filters should only be used rarely -- better to *construct* than discard.
